@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html>
+<meta charset='utf-8' />
+<head>
+<title> Uncle Legend's station</title>
+</head>
+
+<body>
+<p>Successful log in!</p>
+<br />
+<p>Welcome to Uncle Legend's station!</p>
+<br />
+
+<p><B>Search for train schedule:</B></p>
+<form action="/cgi-bin/trainid_get.cgi" method="get">
+<table>
+ <tr>
+   <td><label for="txtid">Train ID:</label></td>
+   <td><input type="text" id="txtid" name="trainid"/></td>
+ </tr>
+ <tr>
+    <td><label>Date:</label></td>
+<!--    <td><label><input type="checkbox" id="checknondate" name="nondate" value="on">In a specific day</label></td>
+ </tr>
+ <tr>
+    <td></td>-->
+    <td><input type="text" size="2" id="txtyear" name="year"> -
+        <input type="text" size="1" id="txtmonth" name="month"> -
+        <input type="text" size="1" id="txtday" name="day">
+    </td>
+</tr>
+<tr>
+    <td></td>
+    <td>(Year - Month - Day)</td>
+ </tr>
+</table>
+<input type="submit" value="search">
+</form> 
+<!--
+<a href="./resultpage.html" target="_blank"><input type="submit" value="search"></a>
+-->
+<br />
+<br />
+<br />
+<p><B>Search for a trip schedule:</B></p>
+<form action="/cgi-bin/traincity_get.cgi" method="get">
+<table>
+ <tr>
+   <td><label for="txtfrom">From:</label></td>
+   <td><input type="text" id="txtfrom" name="from"/></td>
+ </tr>
+ <tr>
+    <td><label for="txtdes">Destination:</label></td>
+    <td><input type="text" id="txtdes" name="destination"></td>
+ </tr>
+ <tr>
+    <td><label>Date:</label></td>
+    <td><input type="text" size="2" id="txtyear" name="year"> -
+        <input type="text" size="1" id="txtmonth" name="month"> -
+        <input type="text" size="1" id="txtday" name="day">
+    </td>
+ </tr>
+ <tr>
+    <td></td>
+    <td>(Year - Month - Day)</td>
+ </tr>
+ <tr>
+    <td>Type of seat: </td>
+    <td><input type="checkbox" id="checkhardseat" name="hard_seat" value="on">hard seat 
+     <input type="checkbox" id="checksoftseat" name="soft_seat" value="on">soft seat</td>
+ </tr>
+ <tr>
+     <td></td>
+     <td>hard berth: 
+     <input type="checkbox" id="checkhardup" name="hard_berth_upper" value="on">upper 
+     <input type="checkbox" id="checkhardmid" name="hard_berth_middle" value="on">middle 
+     <input type="checkbox" id="checkhardlow" name="hard_berth_lower" value="on">lower</td>
+ </tr>
+ <tr>
+     <td></td>
+     <td>soft berth: 
+     <input type="checkbox" id="checksoftup" name="soft_berth_upper" value="on">upper 
+     <input type="checkbox" id="checksoftlow" name="soft_berth_lower" value="on">lower</td>
+ </tr>
+ <tr>
+     <td>Ordered by:</td>
+     <td><select name="Order">
+         <option value="one_price">Ticket price</option>
+         <option value="duration">Travel time</option>
+         <option value="leaving_time">Begin time</option>
+         </select></td>
+ </tr>
+ <!--
+ <tr>
+ 	<td colspan="2"><input type="checkbox" id="checkreturn" name="return" value="on">round trip</label></td>
+ </tr>
+-->
+ <tr>
+    <td colspan="2">Return Trip:(leave it blank if useless)</td>
+ </tr>
+ <tr>
+    <td></td>
+    <td><input type="text" size="2" id="txtyear" name="return_year"> -
+        <input type="text" size="1" id="txtmonth" name="return_month"> -
+        <input type="text" size="1" id="txtday" name="return_day">
+    </td>
+ </tr>
+ <tr>
+    <td></td>
+    <td>(Year - Month - Day)</td>
+ </tr> 
+
+</table>
+<input type="submit" value="search">
+</form> 
+<!--
+<a href="./resultpage.html" target="_blank"><input type="submit" value="search"></a>
+-->
+<br />
+<br />
+<br />
+<p><B>Search for a order:</B></p>
+<form action="/cgi-bin/orderid_get.cgi" method="get">
+<table>
+ <tr>
+   <td>Search By Order ID:</td>
+ </tr> 
+ <tr>
+   <td>ID card:</td>
+   <td><input type="text" id="txtid" name="id"/></td>
+ </tr>
+ <tr>
+   <td>Order ID:</td>
+   <td><input type="text" id="txtorderid" name="order_id"/></td>
+ </tr>
+</table>
+<input type="submit" value="search">
+</form>
+
+<br />
+<br />
+<form action="/cgi-bin/orderdate_get.cgi" method="get">
+<table>
+ <tr>
+   <td>Search By Date:</td>
+</tr> 
+<tr>
+   <td>ID card:</td>
+   <td><input type="text" id="txtid" name="id"/></td>
+ </tr>
+ <tr>
+   <td>From:</td>
+   <td><input type="text" size="2" id="txtorderyear" name="order_year"> -
+        <input type="text" size="1" id="txtordermonth" name="order_month"> -
+        <input type="text" size="1" id="txtorderday" name="order_day">
+    </td>
+ </tr>
+ <tr>
+    <td></td>
+    <td>(Year - Month - Day)</td>
+ </tr>
+  <tr>
+   <td>To:</td>
+   <td><input type="text" size="2" id="txtendyear" name="end_year"> -
+        <input type="text" size="1" id="txtendrmonth" name="end_month"> -
+        <input type="text" size="1" id="txtendday" name="end_day">
+    </td>
+ </tr>
+ <tr>
+    <td></td>
+    <td>(Year - Month - Day)</td>
+ </tr>
+
+</table>
+<input type="submit" value="search">
+</form> 
+
+
+</body>
+</html>

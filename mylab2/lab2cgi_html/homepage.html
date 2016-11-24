@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<meta charset='utf-8' />
+<head>
+<title> Uncle Legend's station</title>
+</head>
+
+<body>
+<p>Here is Uncle Legend's station!</p>
+<br />
+<p>Please go to searchpage or goto adminpage or sign up</p>
+<br />
+
+<A href="searchpage.html"> search</A> <br />
+<br />
+
+<!--<a href="admin.cgi"><botton type="admin account"></botton></a>-->
+<A href="/cgi-bin/admin_get.cgi"> admin</A> <br />
+<br />
+
+<!--The action_page.pl here record the information-->
+<form action="/cgi-bin/signup_get.cgi" method="get">
+<table>
+ <tr>
+   <td><label for="txtname">Name:</label></td>
+   <td><input type="text" id="txtname" name="username"></td>
+ </tr>
+ <tr>
+    <td><label for="txtID">ID number:</label></td>
+    <td><input type="text" id="txtID" name="ID"></td>
+ </tr>
+ <tr>
+    <td><label for="txtphone">Telephone number:</label></td>
+    <td><input type="text" id="txtphone" name="telephone"></td>
+  </tr>
+  <tr>
+    <td colspan=2>
+    Credit card:
+    </td>
+  </tr>
+  <tr>
+    <td><label for="txtbank">Bank of deposit:</label></td>
+    <td><input type="text" id="txtbank" name="bank of card"></td>
+  </tr>
+  <tr>
+    <td><label for="txtcard">Number:</label></td>
+    <td><input type="text" id="txtcard" name ="card number"></td>
+  </tr>
+</table>
+<br />
+<input type="submit" value="sign up">
+</form> 
+
+<!--<a href="./searchpage.html" target="_blank"><input type="submit" value="sign up"></a>-->
+<br />
+</body>
+</html>

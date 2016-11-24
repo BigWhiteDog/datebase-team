@@ -222,19 +222,19 @@ having (min(rs1.hard_seat) > 0 and min(rs2.hard_seat) > 0);
 
 
 --REQUEST 8
-select o.order_id, o.train_id, o.dep_station, o.dest_station,o.seat_type,o.one_price, o.real_date, t.leaving_time, t.arriving_time
+select o.order_id, o.train_id, o.dep_station, o.dest_station,o.seat_type,o.one_price, o.dep_date, t.leaving_time, t.arriving_time
 from train as t, orders as o
 where o.order_id= $1
 and t.train_id = o.train_id
 and t.station_name = o.dep_station
 and o.passenger_id = $2;
 
-select o.order_id,o.real_date,t.leaving_time,o.dep_station, o.dest_station, o.one_price+5
+select o.order_id,o.dep_date,t.leaving_time,o.dep_station, o.dest_station, o.one_price+5
 from train as t, orders as o
 where t.train_id = o.train_id
 and t.station_name = o.dep_station
-and $1 <= o.real_date
-and o.real_date<= $2
+and $1 <= o.dep_date
+and o.dep_date<= $2
 and o.passenger_id = $3;
 
 

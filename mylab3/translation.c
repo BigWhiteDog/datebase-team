@@ -1,41 +1,36 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<ctype.h>
-char sql_buffer[8192];
-char line_buffer[4096];
-typedef enum{create,insert,drop,select}keyword_type;
-typedef enum{int32,varchar}elem_type;
-typedef enum{nosign=0,int_l,int_le,int_g,int_ge,int_e,int_ne,
-	varchar_e,varchar_ne,varchar_like,varchar_nlike}filter_sign;
-typedef enum{nosign=0,sum,count,avg,min,max}aggr_op;
+#include "mysql.h"
+#include "list.h"
+create_query temp_create_query;
+drop_query temp_drop_query;
+insert_query temp_insert_query;
+select_query temp_select_query;
+//when call get_query , set value of one of above four query(use strcpy for varchar , = for int)
+//then call sol_query with query_type
 
-/*basic agrv:
-	create : table_name 0, 
-
-*/
-typedef struct query_elem
+/*
+MAX_COL_NUM 128
+typedef struct
 {
-	keyword_type query;
-	int argc;
-	char* argv[];
-	//
-	filter_sign cmp_op[3];//0 for nosign
-	int cmp_op[6];//0 for nothing
+	int col_num;
+	char col_name[MAX_COL_NUM][128];
+	elem_type e_type[MAX_COL_NUM];
+}table_head;
+*/
+
+SqList table_heads;//use table_heads.elem[i] to get the ith table_head.
 
 
 
-
-}one_query;
-
-
-int sol_query(one_query q)
+int sol_query(query_type q)
 {
 
 }
 
 one_query get_query(FILE *sql)
 {
+	char query_buffer[4096];//for get_query
+	char line_buffer[4096];
+
 	int end_of_query=0;
 	int start_of_query=0;
 	one_query res;
@@ -68,7 +63,12 @@ int main(int argc, char const *argv[])
 		fprintf(stderr,"Error! can't open file %s\n",argv[1]);
 		return 1;
 	}
-	one_query temp_query;
+	
+	// table_heads.elem=calloc(LIST_INIT_SIZE,sizeof(ElemType));
+	// table_heads.length=0;
+	// table_heads.listsize=LIST_INIT_SIZE;
+
+
 	int i;
 	while(!feof(sql)){
 		temp_query=get_query(sql);

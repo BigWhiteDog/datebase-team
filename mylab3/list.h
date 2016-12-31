@@ -14,4 +14,5 @@ typedef struct
 void ListInsert(SqList *l,ElemType e);
 void ListDelete(SqList *l,int index);
 
+extern SqList table_heads;
 #endif

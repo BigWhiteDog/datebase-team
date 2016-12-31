@@ -110,4 +110,17 @@ typedef struct
 	int group_table_no[MAX_COL_NUM];//0 for tab0 , 1 for tab1
 	int group_table_col_no[MAX_COL_NUM];
 }select_query;
+
+
+
+extern create_query temp_create_query;
+extern drop_query temp_drop_query;
+extern insert_query temp_insert_query;
+extern select_query temp_select_query;
+
+int sol_create_query();
+int sol_drop_query();
+int sol_insert_query();
+int sol_select_query();
+
 #endif

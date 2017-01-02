@@ -1,17 +1,23 @@
 #include "list.h"
-void ListInsert(SqList *l,ElemType e)
+void ListInit(SqList *l,int elem_size)
+{
+	l->elem=calloc(LIST_INIT_SIZE,elem_size);
+	l->length=0;
+	l->listsize=LIST_INIT_SIZE;
+}
+void ListInsert(SqList *l,char* e)
 {
 	int i,j;
 	if(l->length>l->listsize)
 	{
 		ElemType * newbase;
-		newbase=(ElemType*)realloc(l->elem,(l->listsize+LISTINCREMENT)*sizeof(ElemType));
+		newbase=(ElemType*)realloc(l->elem,(l->listsize+LISTINCREMENT)*l->elem_size);
 		if(newbase==NULL)
 			exit(1);
 		l->elem=newbase;
 		l->listsize+=LISTINCREMENT;
 	}
-	l->elem[l->length]=e;
+	memcpy(l->elem+l->length*l->elem_size,e,l->elem_size);
 	l->length++;
 }
 void ListDelete(SqList *l,int index)
@@ -20,6 +26,6 @@ void ListDelete(SqList *l,int index)
 		return;
 	int j;
 	for(j=index;j<l->length-1;j++)
-		l->elem[j]=l->elem[j+1];
+		memcpy(l->elem+j*l->elem_size,l->elem+(j+1)*l->elem_size,l->elem_size);
 	l->length--;
 }

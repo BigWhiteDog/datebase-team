@@ -56,6 +56,7 @@ typedef struct
 typedef struct
 {
 	// query_type q_type;
+	char table_name[128];
 	int col_num;
 	char col_name[MAX_COL_NUM][128];
 	elem_type e_type[MAX_COL_NUM];

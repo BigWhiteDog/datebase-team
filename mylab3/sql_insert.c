@@ -100,6 +100,7 @@ int sol_insert_query()
 		page_header new_p_header;
 		ListInit(&new_p_header.slot,2);
 		memcpy(temp_page,&new_p_header,sizeof(page_header));
+		p_head->remain_size=4096-sizeof(page_header)-LIST_INIT_SIZE*2;
 	}
 	else
 	{
@@ -111,6 +112,10 @@ int sol_insert_query()
 		next_tuple+=((short *)(temp_page+next_tuple))[0];
 
 	}
+	if(p_head->slot.listsize==p_head->slot.length)
+		p_head->remain_size-=LISTINCREMENT*2;
+	p_head->remain_size-=t_size;
+	
 	ListInsert(&p_head->slot,&next_tuple);
 	memcpy(temp_page+next_tuple,temp_alloc,t_size);
 	memcpy(temp_page+4096-p_head->slot.listsize*2,p_head->slot.elem,p_head->slot.listsize*2);

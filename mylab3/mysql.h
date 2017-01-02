@@ -1,7 +1,7 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #ifndef MYSQL
 #define MYSQL
@@ -46,6 +46,7 @@ typedef enum{
 // and we try to use a list to save the headers
 typedef struct
 {
+	char table_name[128];
 	int col_num;
 	char col_name[MAX_COL_NUM][128];
 	elem_type e_type[MAX_COL_NUM];

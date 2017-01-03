@@ -18,12 +18,12 @@ typedef struct
 */
 extern SqList table_heads;
 
-char temp_page[4096];
+
 
 int sol_insert_query()
 {
 	table_head *t_head = (table_head *)(table_heads.elem)+temp_insert_query.table_no;
-	
+	char temp_page[4096]={0};
 	short t_size=2;
 	int i;
 	int int_num=0;

@@ -16,7 +16,7 @@ typedef struct
 	int int32[MAX_COL_NUM];
 }insert_query;
 */
-extern SqList table_heads;
+// extern SqList table_heads;
 
 
 
@@ -24,7 +24,7 @@ int sol_insert_query()
 {
 	table_head *t_head = (table_head *)(table_heads.elem)+temp_insert_query.table_no;
 	char temp_page[4096]={0};
-	short t_size=2;
+	int16_t t_size=2;
 	int i;
 	int int_num=0;
 	int varchar_num=0;
@@ -46,17 +46,17 @@ int sol_insert_query()
 		return 0;
 	int var_index=0;
 	int int_index=0;
-	char* last_var=temp_alloc+2+2*varchar_num+4*int_num;
+	int16_t last_var=2+2*varchar_num+4*int_num;
 
-	((short *)temp_alloc)[0]=t_size;
+	((int16_t *)temp_alloc)[0]=t_size;
 
 	for(i=0;i<t_head->col_num;i++)
 	{
 		if(t_head->e_type[i])//varchar
 		{
-			((short *)temp_alloc)[var_index+1]=strlen(temp_insert_query.varchar[i]);
-			memcpy(last_var,temp_insert_query.varchar[i],((short *)temp_alloc)[var_index+1]);
-			last_var+=((short *)temp_alloc)[var_index+1];
+			((int16_t *)temp_alloc)[var_index+1]=last_var;
+			memcpy(temp_alloc+last_var,temp_insert_query.varchar[i],((int16_t *)temp_alloc)[var_index+1]);
+			last_var+=strlen(temp_insert_query.varchar[i]);
 			var_index++;
 		}
 		else
@@ -74,7 +74,7 @@ int sol_insert_query()
 	if(fp==NULL)
 		return 0;
 	fseek(fp,0,SEEK_SET);
-	short next_tuple=sizeof(page_header);
+	int16_t next_tuple=sizeof(page_header);
 	page_header * p_head=(page_header *) temp_page;
 	while(!feof(fp))
 	{
@@ -108,8 +108,8 @@ int sol_insert_query()
 		if(p_head->slot.elem==NULL)
 			return 0;
 		memcpy(p_head->slot.elem , temp_page+4096-p_head->slot.listsize*2 , p_head->slot.listsize*2)
-		next_tuple=((short *)(p_head->slot.elem))[p_head->slot.length-1];
-		next_tuple+=((short *)(temp_page+next_tuple))[0];
+		next_tuple=((int16_t *)(p_head->slot.elem))[p_head->slot.length-1];
+		next_tuple+=((int16_t *)(temp_page+next_tuple))[0];
 
 	}
 	if(p_head->slot.listsize==p_head->slot.length)

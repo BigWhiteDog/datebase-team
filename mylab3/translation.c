@@ -18,7 +18,7 @@ typedef struct
 */
 
 SqList table_heads;//use table_heads.elem[i] to get the ith table_head.
-
+table_head * table_head_p = table_heads.elem;
 
 
 int sol_query(query_type q)
@@ -26,29 +26,6 @@ int sol_query(query_type q)
 
 }
 
-one_query get_query(FILE *sql)
-{
-	char query_buffer[4096];//for get_query
-	char line_buffer[4096];
-
-	int end_of_query=0;
-	int start_of_query=0;
-	one_query res;
-	char *get_res;
-	while(!start_of_query)
-	{
-		get_res=fgets(line_buffer,4096,sql);
-		if(get_res==NULL)
-			return  res;
-		if(line_buffer[0])
-	}
-	while(!end_of_query){
-		fgets(line_buffer,4096,sql);
-
-
-	}
-	
-}
 
 int main(int argc, char const *argv[])
 {

@@ -17,7 +17,7 @@ typedef struct {
 	int table_no;
 }drop_query;
 */
-extern SqList table_heads;
+// extern SqList table_heads;
 
 int sol_drop_query()
 {

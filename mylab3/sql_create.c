@@ -19,7 +19,7 @@ typedef struct
 	elem_type e_type[MAX_COL_NUM];
 }create_query;
 */
-extern SqList table_heads;
+// extern SqList table_heads;
 
 int sol_create_query()
 {

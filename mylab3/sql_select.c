@@ -1,6 +1,5 @@
 #include"mycmp.h"
 #include "mysql.h"
-#include "list.h"
 
 int (*filter_cmp_func[11])(void *,void*,int,int)={
 	NULL,

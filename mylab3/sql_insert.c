@@ -1,6 +1,5 @@
 #include"list.h"
 #include"mysql.h"
-#include"mypage.h"
 /*typedef struct
 {
 	int col_num;

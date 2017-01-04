@@ -57,7 +57,6 @@ typedef struct
 //create query
 typedef struct
 {
-	// query_type q_type;
 	char table_name[128];
 	int col_num;
 	char col_name[MAX_COL_NUM][128];
@@ -66,18 +65,12 @@ typedef struct
 
 //drop query
 typedef struct {
-	// query_type q_type;
-	//char table_name[128];
-//need to translate the table_name into table_no
 	int table_no;
 }drop_query;
 
 //insert query
 typedef struct
 {
-	// query_type q_type;
-	//char table_name[128];
-//need to translate the table_name into table_no
 	int table_no;
 	char varchar[MAX_COL_NUM][4096];
 	int32_t int32[MAX_COL_NUM];
@@ -86,9 +79,6 @@ typedef struct
 //select query
 typedef struct
 {
-	// query_type q_type;
-	//char table_name[128];
-//need to translate the table_name into table_no
 	int select_table_all_col;//1 for select * , 2 for count(*)
 	
 	int total_select_no;//<=2048
@@ -130,5 +120,11 @@ int sol_create_query();
 int sol_drop_query();
 int sol_insert_query();
 int sol_select_query();
+
+typedef struct 
+{
+	int remain_size;
+	SqList slot;
+}page_header;
 
 #endif

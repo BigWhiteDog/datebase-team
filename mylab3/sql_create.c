@@ -1,25 +1,6 @@
 #include"list.h"
 #include"mysql.h"
 
-/*typedef struct
-{
-	int col_num;
-	char col_name[MAX_COL_NUM][128];
-	elem_type e_type[MAX_COL_NUM];
-}table_head;
-
-
-//create query
-typedef struct
-{
-	// query_type q_type;
-	char table_name[128];
-	int col_num;
-	char col_name[MAX_COL_NUM][128];
-	elem_type e_type[MAX_COL_NUM];
-}create_query;
-*/
-// extern SqList table_heads;
 
 int sol_create_query()
 {
@@ -41,5 +22,6 @@ int sol_create_query()
 	if(fp==NULL)
 		return 0;
 	fclose(fp);
+	printf("Successfully created table %s\n",temp_create_query.table_name);
 	return 1;
 }

@@ -41,21 +41,20 @@ int main(int argc, char const *argv[])
 		fprintf(stderr,"Error! can't open file %s\n",argv[1]);
 		return 1;
 	}
+	FILE *metadata;
+	metadata=fopen("./db/metadata","wb+");
+	fread(&table_heads,sizeof(table_heads),1,metadata);
+	table_heads.elem=malloc(table_heads.listsize);
+	fread(table_heads.elem,table_heads.listsize,1,metadata);
 	
-	// table_heads.elem=calloc(LIST_INIT_SIZE,sizeof(ElemType));
-	// table_heads.length=0;
-	// table_heads.listsize=LIST_INIT_SIZE;
+	
 
-
-	int i;
-	while(!feof(sql)){
-		temp_query=get_query(sql);
-		sol_query(temp_query);
-		for(i=0;i<)
-	}
-
-
+	fseek(metadata,0,SEEK_SET);
+	fwrite(&table_heads,sizeof(table_heads),1,metadata);
+	fwrite(table_heads.elem,table_heads.listsize,1,metadata);
+	free(table_heads.elem);
 	fclose(sql);
+	fclose(metadata);
 
 	return 0;
 }

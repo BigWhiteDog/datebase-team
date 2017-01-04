@@ -21,7 +21,6 @@ char * in_tuple(table_head* t_head,char * tuple_base,int col_no,int *len)
 	int total_var=0;
 	int var_index=0;
 	int int_index=0;
-	short total_size = *(short *)tuple_base;
 	int i;
 	for(i=0;i<t_head->col_num;i++){
 		if(t_head->e_type[i]){
@@ -191,7 +190,7 @@ void aggr_func_sum(join_node * big_bro, table_head* t_head,int s_table,int s_col
 	{
 		int32_t *x;
 		int len;
-		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		x=(int32_t *)in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
 		
 		s+=*x;
 
@@ -217,7 +216,7 @@ void aggr_func_avg(join_node * big_bro, table_head* t_head, int s_table,int s_co
 	{
 		int32_t *x;
 		int len;
-		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		x=(int32_t *)in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
 		
 		s+=*x;
 		c++;
@@ -233,7 +232,7 @@ void aggr_func_min(join_node * big_bro, table_head* t_head, int s_table,int s_co
 	{
 		int32_t *x;
 		int len;
-		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		x=(int32_t *)in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
 		if(*x<m)
 			m=*x;
 		big_bro=big_bro->next;
@@ -247,7 +246,7 @@ void aggr_func_max(join_node * big_bro, table_head* t_head, int s_table,int s_co
 	{
 		int32_t *x;
 		int len;
-		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		x=(int32_t *)in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
 		if(*x>m)
 			m=*x;
 		big_bro=big_bro->next;
@@ -262,7 +261,7 @@ void (*aggr_funcs[6])(join_node *,table_head*,int,int)={
 	&aggr_func_avg,
 	&aggr_func_min,
 	&aggr_func_max
-}
+};
 
 char * aggr_str[6]={
 	"",
@@ -271,14 +270,38 @@ char * aggr_str[6]={
 	"avg",
 	"min",
 	"max"
-}
+};
 
 
 int sol_select_query()
 {
+	if(temp_select_query.select_table_all_col)
+	{
+		int i,j;
+		int total_col;
+		total_col=table_head_p[temp_select_query.use_table_no[0]].col_num;
+		temp_select_query.total_select_no=total_col;
+		for(i=0;i<total_col;i++)
+		{
+			temp_select_query.select_table[i]=0;
+			temp_select_query.select_table_col_no[i]=i;
+		}
+		if(temp_select_query.join_sign)
+		{
+			total_col=table_head_p[temp_select_query.use_table_no[1]].col_num;
+			temp_select_query.total_select_no+=total_col;
+			for(j=0;j<total_col;j++)
+			{
+				temp_select_query.select_table[i]=1;
+				temp_select_query.select_table_col_no[i]=j;
+				i++;
+			}
+		}
+	}
+
 	table_head *t_head[2];
-	t_head[0] = table_head_p+temp_select_query.use_table[0];
-	t_head[1] = table_head_p+temp_select_query.use_table[1];
+	t_head[0] = table_head_p+temp_select_query.use_table_no[0];
+	t_head[1] = table_head_p+temp_select_query.use_table_no[1];
 	
 	FILE *fp[2];
 	char name_buffer[256];

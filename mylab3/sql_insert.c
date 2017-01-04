@@ -14,7 +14,14 @@ typedef struct
 	char varchar[MAX_COL_NUM][4096];
 	int int32[MAX_COL_NUM];
 }insert_query;
+
+typedef struct 
+{
+	int remain_size;
+	SqList slot;
+}page_header;
 */
+
 // extern SqList table_heads;
 
 
@@ -54,7 +61,7 @@ int sol_insert_query()
 		if(t_head->e_type[i])//varchar
 		{
 			((int16_t *)temp_alloc)[var_index+1]=last_var;
-			memcpy(temp_alloc+last_var,temp_insert_query.varchar[i],((int16_t *)temp_alloc)[var_index+1]);
+			memcpy(temp_alloc+last_var,temp_insert_query.varchar[i],strlen(temp_insert_query.varchar[i]));
 			last_var+=strlen(temp_insert_query.varchar[i]);
 			var_index++;
 		}
@@ -69,7 +76,8 @@ int sol_insert_query()
 	char name_buffer[256];
 	sprintf(name_buffer,"./db/%s.tbl",t_head->table_name);
 	FILE *fp;
-	fp=fopen(name_buffer,"wb+");
+	fp=fopen(name_buffer,"rb+");
+	fseek(fp,0,SEEK_SET);
 	if(fp==NULL)
 		return 0;
 	fseek(fp,0,SEEK_SET);
@@ -106,7 +114,7 @@ int sol_insert_query()
 		p_head->slot.elem=malloc(p_head->slot.listsize*2);
 		if(p_head->slot.elem==NULL)
 			return 0;
-		memcpy(p_head->slot.elem , temp_page+4096-p_head->slot.listsize*2 , p_head->slot.listsize*2)
+		memcpy(p_head->slot.elem , temp_page+4096-p_head->slot.listsize*2 , p_head->slot.listsize*2);
 		next_tuple=((int16_t *)(p_head->slot.elem))[p_head->slot.length-1];
 		next_tuple+=((int16_t *)(temp_page+next_tuple))[0];
 

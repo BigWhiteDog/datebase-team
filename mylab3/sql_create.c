@@ -11,7 +11,7 @@ int sol_create_query()
 	int i;
 	for(i=0;i<new_table_head.col_num;i++)
 	{
-		strcpy(temp_create_query.col_name[i],new_table_head.col_name[i]);
+		strcpy(new_table_head.col_name[i],temp_create_query.col_name[i]);
 		new_table_head.e_type[i] = temp_create_query.e_type[i];
 	}
 	ListInsert(&table_heads,&new_table_head);

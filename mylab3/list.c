@@ -2,16 +2,16 @@
 void ListInit(SqList *l,int elem_size)
 {
 	l->elem=calloc(LIST_INIT_SIZE,elem_size);
+	l->elem_size=elem_size;
 	l->length=0;
 	l->listsize=LIST_INIT_SIZE;
 }
 void ListInsert(SqList *l,char* e)
 {
-	int i,j;
-	if(l->length>l->listsize)
+	if(l->length >= l->listsize)
 	{
-		ElemType * newbase;
-		newbase=(ElemType*)realloc(l->elem,(l->listsize+LISTINCREMENT)*l->elem_size);
+		char * newbase;
+		newbase=(char*)realloc(l->elem,(l->listsize+LISTINCREMENT)*l->elem_size);
 		if(newbase==NULL)
 			exit(1);
 		l->elem=newbase;

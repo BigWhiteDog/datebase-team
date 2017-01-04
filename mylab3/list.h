@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LIST_INIT_SIZE 10
-#define LISTINCREMENT 10
+#define LIST_INIT_SIZE 16
+#define LISTINCREMENT 16
 typedef struct
 {
 	char *elem;
-	int elem_size
+	int elem_size;
 	int length;
 	int listsize;
 }SqList;

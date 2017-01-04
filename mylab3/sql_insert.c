@@ -67,7 +67,7 @@ int sol_insert_query()
 		}
 		else
 		{
-			memcpy(temp_alloc+2+2*varchar_num+int_index*int_num,&temp_insert_query.int32[i],4);
+			memcpy(temp_alloc+2+2*varchar_num+4*int_index,&temp_insert_query.int32[i],4);
 			int_index++;
 		}
 	}
@@ -76,14 +76,19 @@ int sol_insert_query()
 	char name_buffer[256];
 	sprintf(name_buffer,"./db/%s.tbl",t_head->table_name);
 	FILE *fp;
+	int fp_end;
 	fp=fopen(name_buffer,"rb+");
 	fseek(fp,0,SEEK_SET);
 	if(fp==NULL)
 		return 0;
+
+	fseek(fp,0,SEEK_END);
+	fp_end=ftell(fp);
 	fseek(fp,0,SEEK_SET);
+	
 	int16_t next_tuple=sizeof(page_header);
 	page_header * p_head=(page_header *) temp_page;
-	while(!feof(fp))
+	while(fp_end!=ftell(fp))
 	{
 		fread(temp_page,4096,1,fp);
 		if(p_head->slot.listsize==p_head->slot.length)//need new space when need realloc list
@@ -101,7 +106,7 @@ int sol_insert_query()
 		}
 		
 	}
-	if(feof(fp))
+	if(fp_end==ftell(fp))
 	{
 		memset(temp_page,0,4096);
 		page_header new_p_header;

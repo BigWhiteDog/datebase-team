@@ -78,20 +78,19 @@ void * init_hash(int node_size)
 {
 	return calloc(HASH_SIZE,node_size);
 }
-void insert_join_hash(hash_node * hash_tab ,int index ,hash_node insert_node)
+void insert_join_hash(hash_node * hash_tab ,int index ,char* tuple_base)
 {
 	hash_node *link_start=hash_tab[index].next;
-	if(link_start==NULL)
+	if(hash_tab[index].tuple_base==NULL)
 	{
-		hash_tab[index]=insert_node;
+		hash_tab[index].tuple_base=tuple_base;
 		hash_tab[index].next=NULL;
-		return ;
 	}
 	else
 	{
 		hash_tab[index].next=calloc(1,sizeof(hash_node));
-		insert_node.next=link_start;
-		*(hash_tab[index].next)=insert_node;
+		hash_tab[index].next->next=link_start;
+		hash_tab[index].next->tuple_base=tuple_base;
 	}
 }
 void free_join_hash(hash_node * hash_tab)
@@ -304,18 +303,26 @@ int sol_select_query()
 	t_head[1] = table_head_p+temp_select_query.use_table_no[1];
 	
 	FILE *fp[2];
+	int fp_end[2];
 	char name_buffer[256];
 	sprintf(name_buffer,"./db/%s.tbl",t_head[0]->table_name);
 	fp[0]=fopen(name_buffer,"rb");
 	if(fp[0]==NULL)
 		return 0;
+
+	fseek(fp[0],0,SEEK_END);
+	fp_end[0]=ftell(fp[0]);
 	fseek(fp[0],0,SEEK_SET);
+	
 	if(temp_select_query.join_sign)
 	{
 		sprintf(name_buffer,"./db/%s.tbl",t_head[1]->table_name);
 		fp[1]=fopen(name_buffer,"rb");
 		if(fp[1]==NULL)
 			return 0;
+	
+		fseek(fp[1],0,SEEK_END);
+		fp_end[1]=ftell(fp[1]);
 		fseek(fp[1],0,SEEK_SET);
 	}
 	
@@ -326,7 +333,8 @@ int sol_select_query()
 	char temp_page[4096];
 	page_header * p_head=(page_header *) temp_page;
 	
-	while(!feof(fp[0]))
+
+	while(fp_end[0]!=ftell(fp[0]))
 	{
 		fread(temp_page,4096,1,fp[0]);
 		short * slot_base=temp_page+4096-p_head->slot.listsize*2;
@@ -335,8 +343,7 @@ int sol_select_query()
 		short tuple_size;
 		int len;
 		int const_len;
-		const_len=(temp_select_query.filter_0_sign>=7)?strlen(temp_select_query.filter_0_const_char):4;
-
+		const_len=(temp_select_query.filter_0_sign>=varchar_e)?strlen(temp_select_query.filter_0_const_char):4;
 		for(i=0;i<p_head->slot.length;i++)
 		{
 			tuple_base=temp_page+slot_base[i];
@@ -345,7 +352,8 @@ int sol_select_query()
 			{
 				char *val_to_cmp;
 				val_to_cmp=in_tuple(t_head[0],tuple_base,temp_select_query.filter_0_table_col_no,&len);
-				if(temp_select_query.filter_0_sign>=7)
+
+				if(temp_select_query.filter_0_sign>=varchar_e)
 				{
 					if((filter_cmp_func[temp_select_query.filter_0_sign])(val_to_cmp,temp_select_query.filter_0_const_char,len,const_len)==0)	
 						continue;
@@ -362,7 +370,7 @@ int sol_select_query()
 		}
 	}
 	if(temp_select_query.join_sign)
-		while(!feof(fp[1]))
+		while(fp_end[1]!=ftell(fp[1]))
 		{
 			fread(temp_page,4096,1,fp[1]);
 			short * slot_base=temp_page+4096-p_head->slot.listsize*2;
@@ -404,19 +412,14 @@ int sol_select_query()
 		//create hash
 		hash_node *hash_tab=init_hash(sizeof(hash_node));
 		int i;
-		
 		for(i=0;i<tab0_filter.length;i++)
 		{
 			int len;
 			char *tuple_0_base=((char**)tab0_filter.elem)[i];
 			char * cmp_0_key=in_tuple(t_head[0],tuple_0_base,temp_select_query.join_table_0_col_no,&len);
 			uint32_t hash_key_index=bkdr_hash(cmp_0_key,len);
-
-			hash_node temp_hash_node;
-			temp_hash_node.next=NULL;
-			temp_hash_node.tuple_base=((char**)tab0_filter.elem)[i];
-
-			insert_join_hash(hash_tab,hash_key_index,temp_hash_node);
+		
+			insert_join_hash(hash_tab,hash_key_index,((char**)tab0_filter.elem)[i]);
 		}
 		//use hash
 		for(i=0;i<tab1_filter.length;i++)
@@ -426,6 +429,8 @@ int sol_select_query()
 			char * cmp_1_key=in_tuple(t_head[1],tuple_1_base,temp_select_query.join_table_1_col_no,&len1);
 			uint32_t hash_key_index=bkdr_hash(cmp_1_key,len1);
 			hash_node * res=hash_tab+hash_key_index;
+			if(res->tuple_base==NULL)//nothing in this bucket
+				continue;
 			while(res!=NULL)
 			{
 				char *tuple_0_base=res->tuple_base;
@@ -448,6 +453,7 @@ int sol_select_query()
 	}
 	else
 	{
+
 		int i;
 		for(i=0;i<tab0_filter.length;i++)
 		{
@@ -477,9 +483,10 @@ int sol_select_query()
 		else if(aggr_mode==aggr_count)
 			kcount+=printf("count");
 		else
-			kcount+=printf("%s(%s)\n",aggr_str[aggr_mode],t_head[s_tab]->col_name[s_col_no]);	
+			kcount+=printf("%s(%s)",aggr_str[aggr_mode],t_head[s_tab]->col_name[s_col_no]);	
 		if(k!=t_select_no-1)
 			putchar('|');
+		kcount++;
 	}
 	putchar('\n');
 	for(k=0;k<kcount;k++)
@@ -540,7 +547,7 @@ int sol_select_query()
 		free(join_node_base[i].tuple_base[0]);
 		free(join_node_base[i].tuple_base[1]);
 	}
-
 	free(tab_join.elem);
+	printf("select finish!\n");
 	return 1;
 }

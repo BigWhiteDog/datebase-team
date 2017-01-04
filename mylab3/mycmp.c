@@ -66,7 +66,6 @@ int varchar_like_cmp(void * p1,void * p2,int len1,int len2)
 	memcpy(temp2,p2,len2);
 	temp1[len1]='\0';
 	temp2[len2]='\0';
-
 	if(strstr(temp1,temp2)==NULL)
 		return 0;
 	else

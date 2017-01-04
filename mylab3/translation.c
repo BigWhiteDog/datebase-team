@@ -11,6 +11,7 @@ select_query temp_select_query;
 MAX_COL_NUM 128
 typedef struct
 {
+	char table_name[128];
 	int col_num;
 	char col_name[MAX_COL_NUM][128];
 	elem_type e_type[MAX_COL_NUM];
@@ -57,4 +58,30 @@ int main(int argc, char const *argv[])
 	fclose(sql);
 
 	return 0;
+}
+void select_query_all_change()
+{
+	if(temp_select_query.select_table_all_col)
+	{
+		int i,j;
+		int total_col;
+		total_col=table_head_p[temp_select_query.use_table_no[0]].col_num;
+		temp_select_query.total_select_no=total_col;
+		for(i=0;i<total_col;i++)
+		{
+			temp_select_query.select_table[i]=0;
+			temp_select_query.select_table_col_no[i]=i;
+		}
+		if(temp_select_query.join_sign)
+		{
+			total_col=table_head_p[temp_select_query.use_table_no[1]].col_num;
+			temp_select_query.total_select_no+=total_col;
+			for(j=0;j<total_col;j++)
+			{
+				temp_select_query.select_table[i]=1;
+				temp_select_query.select_table_col_no[i]=j;
+				i++;
+			}
+		}
+	}
 }

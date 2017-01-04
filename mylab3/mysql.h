@@ -36,11 +36,11 @@ typedef enum{
 
 typedef enum{
 	aggr_nosign=0,
-	sum,
-	count,
-	avg,
-	min,
-	max
+	aggr_sum,
+	aggr_count,
+	aggr_avg,
+	aggr_min,
+	aggr_max
 }aggr_op;
 
 //assume max column number = 128
@@ -103,18 +103,16 @@ typedef struct
 	int join_table_1_col_no;
 	
 	int filter_0_sign;
-	// int filter_0_table_no;//0 for tab0, 1 for tab 1
 	int filter_0_table_col_no;
 	int32_t filter_0_const_int;
 	char filter_0_const_char[4096];
 	
 	int filter_1_sign;
-	// int filter_1_table_no;//0 for tab0, 1 for tab 1
 	int filter_1_table_col_no;
 	int32_t filter_1_const_int;
 	char filter_1_const_char[4096];
 
-	int group_table_no;//0 for tab0 , 1 for tab1
+	int group_table_no;//0 for tab0 , 1 for tab1 ,2 for no group
 	int group_table_col_no;
 }select_query;
 
@@ -126,6 +124,7 @@ extern insert_query temp_insert_query;
 extern select_query temp_select_query;
 
 extern SqList table_heads;
+extern table_head * table_head_p;
 
 int sol_create_query();
 int sol_drop_query();

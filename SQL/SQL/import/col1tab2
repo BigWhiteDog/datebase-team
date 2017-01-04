@@ -1,0 +1,2 @@
+create table col1tab2 (id int);
+insert into col1tab2 values (1);

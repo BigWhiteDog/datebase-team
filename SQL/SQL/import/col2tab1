@@ -1,0 +1,11 @@
+create table col2tab1 (id int, dist varchar);
+insert into col2tab1 values (1, 'nouns');
+insert into col2tab1 values (2, 'adjectives');
+insert into col2tab1 values (3, 'nations');
+insert into col2tab1 values (4, 'regions');
+insert into col2tab1 values (5, 'terminators');
+insert into col2tab1 values (6, 'auxillaries');
+insert into col2tab1 values (7, 'adverbs');
+insert into col2tab1 values (8, 'terminators');
+insert into col2tab1 values (9, 'Q13b');
+insert into col2tab1 values (10, 'articles');

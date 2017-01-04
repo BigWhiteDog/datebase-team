@@ -2,7 +2,7 @@
 #include "mysql.h"
 #include "list.h"
 
-int (*filter_cmp_func[11])(void *,void*)={
+int (*filter_cmp_func[11])(void *,void*,int,int)={
 	NULL,
 	&int_l_cmp,
     &int_le_cmp,
@@ -15,22 +15,6 @@ int (*filter_cmp_func[11])(void *,void*)={
     &varchar_like_cmp,
     &varchar_nlike_cmp
 };
-
-uint32_t bkdr_hash(const char *key,int len)
-{
-	uint32_t hash = 0;
-	for (uint32_t i = 0; i < len; ++i)
-		hash = 131 * hash + key[i];
-	return hash;
-}
-
-typedef struct link_node
-{
-	struct link_node * next;
-	char * tuple_base[2];
-	int32_t s;
-	int32_t c;
-}join_node;
 
 
 char * in_tuple(table_head* t_head,char * tuple_base,int col_no,int *len)
@@ -61,28 +45,241 @@ char * in_tuple(table_head* t_head,char * tuple_base,int col_no,int *len)
 		if(var_index<total_var-1)
 			*len=((short*)tuple_base)[1+var_index+1]-((short*)tuple_base)[1+var_index];
 		else
-			*len=((short*)tuple_base)[0]-((short*)tuple_base)[total_var]
+			*len=((short*)tuple_base)[0]-((short*)tuple_base)[total_var];
 		
-		return tuple_base+((short*)tuple_base)[1+var_index]
+		return tuple_base+((short*)tuple_base)[1+var_index];
 	}
-
 }
 
-/*typedef struct
+
+
+//for hash -----------------------------------------------------------------------
+#define HASH_SIZE 1024
+
+typedef struct join_link_node
 {
-	char table_name[128];
-	int col_num;
-	char col_name[MAX_COL_NUM][128];
-	elem_type e_type[MAX_COL_NUM];
-}table_head;
-*/
+	struct join_link_node* next;
+	char *tuple_base;
+}hash_node;
+
+typedef struct group_link_node
+{
+	struct group_link_node * next;
+	char * tuple_base[2];
+	struct group_link_node * brother;
+}join_node;
+
+uint32_t bkdr_hash(const char *key,int len)
+{
+	uint32_t hash = 0;
+	for (uint32_t i = 0; i < len; ++i)
+		hash = 131 * hash + key[i];
+	return (hash & 0x7FFFFFFF)%HASH_SIZE;
+}
+void * init_hash(int node_size)
+{
+	return calloc(HASH_SIZE,node_size);
+}
+void insert_join_hash(hash_node * hash_tab ,int index ,hash_node insert_node)
+{
+	hash_node *link_start=hash_tab[index].next;
+	if(link_start==NULL)
+	{
+		hash_tab[index]=insert_node;
+		hash_tab[index].next=NULL;
+		return ;
+	}
+	else
+	{
+		hash_tab[index].next=calloc(1,sizeof(hash_node));
+		insert_node.next=link_start;
+		*(hash_tab[index].next)=insert_node;
+	}
+}
+void free_join_hash(hash_node * hash_tab)
+{
+	int i;
+	for(i=0;i<HASH_SIZE;i++)
+	{
+		hash_node *link_start=hash_tab[i].next;
+		while(link_start!=NULL)
+		{
+			void *temp=link_start;
+			link_start=link_start->next;
+			free(temp);
+		}
+	}
+	free(hash_tab);
+}
+void insert_group_hash(join_node ** group_hash_tab,join_node * insert_node, table_head* t_head)
+{
+	int group_filter_sign;
+	group_filter_sign = (t_head->e_type[temp_select_query.group_table_col_no])? varchar_e : int_e;
+	
+	char* insert_tuple_base=insert_node->tuple_base[temp_select_query.group_table_no];
+	
+	int insert_key_len;
+	char* insert_key_base;
+	
+	insert_key_base=in_tuple(t_head,insert_tuple_base,temp_select_query.group_table_col_no,&insert_key_len);
+
+	int hash_key_index;
+	hash_key_index=bkdr_hash(insert_key_base,insert_key_len);
+
+	join_node * link_start = group_hash_tab[hash_key_index];
+
+	if(link_start==NULL)//new bucket
+	{
+		group_hash_tab[hash_key_index]=insert_node;
+	}
+	else
+	{
+		join_node *link_pre = link_start;
+
+		while(link_start!=NULL)
+		{
+			link_pre= link_start;
+
+			char * cmp_tuple_base=link_start->tuple_base[temp_select_query.group_table_no];
+			int cmp_key_len;
+			char * cmp_key_base;
+
+			cmp_key_base = in_tuple(t_head,cmp_tuple_base,temp_select_query.group_table_col_no,&cmp_key_len);
+
+			//if find brother
+			if((filter_cmp_func[group_filter_sign])(insert_key_base,cmp_key_base,insert_key_len,cmp_key_len))
+			{
+				insert_node->brother = link_start->brother;
+				link_start->brother = insert_node;
+				break;
+			}
+			link_start=link_start->next;
+		}
+		if(link_start==NULL)//no brother,need new node in bucket
+		{
+			link_pre->next=insert_node;
+		}
+	}
+}
+
+//end hash -----------------------------------------------------------------------
+
+
+//for aggr ----------------------------------------------------------------------
+
+void aggr_func_nosign(join_node * big_bro, table_head* t_head,int s_table,int s_col_no)
+{
+	char *x;
+	int len;
+	x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+	if(t_head->e_type[s_col_no])//varchar
+	{
+		char temp[len+1];
+		memcpy(temp,x,len);
+		temp[len]='\0';
+		printf("%s", temp);
+	}
+	else
+	{
+		printf("%d",*(int32_t *)x);
+	}
+}
+
+void aggr_func_sum(join_node * big_bro, table_head* t_head,int s_table,int s_col_no)
+{
+	int32_t s=0;
+	while(big_bro!= NULL)
+	{
+		int32_t *x;
+		int len;
+		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		
+		s+=*x;
+
+		big_bro=big_bro->brother;
+	}
+	printf("%d", s);
+}
+void aggr_func_count(join_node * big_bro, table_head* t_head, int s_table,int s_col_no)
+{
+	int32_t c=0;
+	while(big_bro!= NULL)
+	{	
+		c++;
+		big_bro=big_bro->brother;
+	}
+	printf("%d", c);
+}
+void aggr_func_avg(join_node * big_bro, table_head* t_head, int s_table,int s_col_no)
+{
+	int32_t s=0;
+	int32_t c=0;
+	while(big_bro!= NULL)
+	{
+		int32_t *x;
+		int len;
+		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		
+		s+=*x;
+		c++;
+
+		big_bro=big_bro->brother;
+	}
+	printf("%d", s/c);
+}
+void aggr_func_min(join_node * big_bro, table_head* t_head, int s_table,int s_col_no)
+{
+	int32_t m=0x7FFFFFFF;
+	while(big_bro!=NULL)
+	{
+		int32_t *x;
+		int len;
+		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		if(*x<m)
+			m=*x;
+		big_bro=big_bro->next;
+	}
+	printf("%d", m);
+}
+void aggr_func_max(join_node * big_bro, table_head* t_head, int s_table,int s_col_no)
+{
+	int32_t m=0x80000000;
+	while(big_bro!=NULL)
+	{
+		int32_t *x;
+		int len;
+		x=in_tuple(t_head,big_bro->tuple_base[s_table],s_col_no,&len);
+		if(*x>m)
+			m=*x;
+		big_bro=big_bro->next;
+	}
+	printf("%d", m);
+}
+
+void (*aggr_funcs[6])(join_node *,table_head*,int,int)={
+	&aggr_func_nosign,
+	&aggr_func_sum,
+	&aggr_func_count,
+	&aggr_func_avg,
+	&aggr_func_min,
+	&aggr_func_max
+}
+
+char * aggr_str[6]={
+	"",
+	"sum",
+	"count",
+	"avg",
+	"min",
+	"max"
+}
 
 
 int sol_select_query()
 {
 	table_head *t_head[2];
-	t_head[0] = (table_head *)(table_heads.elem)+temp_select_query.use_table[0];
-	t_head[1] = (table_head *)(table_heads.elem)+temp_select_query.use_table[1];
+	t_head[0] = table_head_p+temp_select_query.use_table[0];
+	t_head[1] = table_head_p+temp_select_query.use_table[1];
 	
 	FILE *fp[2];
 	char name_buffer[256];
@@ -115,6 +312,9 @@ int sol_select_query()
 		char *tuple_base;
 		short tuple_size;
 		int len;
+		int const_len;
+		const_len=(temp_select_query.filter_0_sign>=7)?strlen(temp_select_query.filter_0_const_char):4;
+
 		for(i=0;i<p_head->slot.length;i++)
 		{
 			tuple_base=temp_page+slot_base[i];
@@ -125,19 +325,12 @@ int sol_select_query()
 				val_to_cmp=in_tuple(t_head[0],tuple_base,temp_select_query.filter_0_table_col_no,&len);
 				if(temp_select_query.filter_0_sign>=7)
 				{
-					char* temp=malloc(len+1);
-					memset(temp,0,len+1);
-					memcpy(temp,val_to_cmp,len);
-					if((filter_cmp_func[temp_select_query.filter_0_sign])(temp,temp_select_query.filter_0_const_char)==0)					
-					{	
-						free(temp);
+					if((filter_cmp_func[temp_select_query.filter_0_sign])(val_to_cmp,temp_select_query.filter_0_const_char,len,const_len)==0)	
 						continue;
-					}
-					free(temp);
 				}
 				else
 				{
-					if((filter_cmp_func[temp_select_query.filter_0_sign])(val_to_cmp,&temp_select_query.filter_0_const_int)==0)
+					if((filter_cmp_func[temp_select_query.filter_0_sign])(val_to_cmp,&temp_select_query.filter_0_const_int,len,const_len)==0)
 						continue;
 				}
 			}
@@ -155,6 +348,8 @@ int sol_select_query()
 			char *tuple_base;
 			short tuple_size;
 			int len;
+			int const_len;
+			const_len=(temp_select_query.filter_1_sign>=7)?strlen(temp_select_query.filter_1_const_char):4;
 			for(i=0;i<p_head->slot.length;i++)
 			{
 				tuple_base=temp_page+slot_base[i];
@@ -163,21 +358,14 @@ int sol_select_query()
 				{
 					char *val_to_cmp;
 					val_to_cmp=in_tuple(t_head[1],tuple_base,temp_select_query.filter_1_table_col_no,&len);
-					if(temp_select_query.filter_1_sign>=7)
+					if(temp_select_query.filter_1_sign>=varchar_e)
 					{
-						char* temp=malloc(len+1);
-						memset(temp,0,len+1);
-						memcpy(temp,val_to_cmp,len);
-						if((filter_cmp_func[temp_select_query.filter_1_sign])(temp,temp_select_query.filter_1_const_char)==0)					
-						{	
-							free(temp);
+						if((filter_cmp_func[temp_select_query.filter_1_sign])(val_to_cmp,temp_select_query.filter_1_const_char,len,const_len)==0)
 							continue;
-						}
-						free(temp);
 					}
 					else
 					{
-						if((filter_cmp_func[temp_select_query.filter_1_sign])(val_to_cmp,&temp_select_query.filter_1_const_int)==0)
+						if((filter_cmp_func[temp_select_query.filter_1_sign])(val_to_cmp,&temp_select_query.filter_1_const_int,len,const_len)==0)
 							continue;
 					}
 				}
@@ -188,25 +376,149 @@ int sol_select_query()
 		}
 	SqList tab_join;
 	ListInit(&tab_join,sizeof(join_node));
+	
 	if(temp_select_query.join_sign)
 	{
+		//create hash
+		hash_node *hash_tab=init_hash(sizeof(hash_node));
+		int i;
+		
+		for(i=0;i<tab0_filter.length;i++)
+		{
+			int len;
+			char *tuple_0_base=((char**)tab0_filter.elem)[i];
+			char * cmp_0_key=in_tuple(t_head[0],tuple_0_base,temp_select_query.join_table_0_col_no,&len);
+			uint32_t hash_key_index=bkdr_hash(cmp_0_key,len);
 
-		ListInsert
+			hash_node temp_hash_node;
+			temp_hash_node.next=NULL;
+			temp_hash_node.tuple_base=((char**)tab0_filter.elem)[i];
+
+			insert_join_hash(hash_tab,hash_key_index,temp_hash_node);
+		}
+		//use hash
+		for(i=0;i<tab1_filter.length;i++)
+		{
+			int len0,len1;
+			char *tuple_1_base=((char**)tab1_filter.elem)[i];
+			char * cmp_1_key=in_tuple(t_head[1],tuple_1_base,temp_select_query.join_table_1_col_no,&len1);
+			uint32_t hash_key_index=bkdr_hash(cmp_1_key,len1);
+			hash_node * res=hash_tab+hash_key_index;
+			while(res!=NULL)
+			{
+				char *tuple_0_base=res->tuple_base;
+				char * cmp_0_key=in_tuple(t_head[0],tuple_0_base,temp_select_query.join_table_0_col_no,&len0);
+				if(filter_cmp_func[temp_select_query.join_sign](cmp_0_key,cmp_1_key,len0,len1))
+				{
+					join_node temp_join;
+					temp_join.next=NULL;
+					temp_join.tuple_base[0]=tuple_0_base;
+					temp_join.tuple_base[1]=tuple_1_base;
+					temp_join.brother=NULL;
+					ListInsert(&tab_join,&temp_join);
+				}
+				res=res->next;
+			}
+		}
+		free_join_hash(hash_tab);
+		free(tab0_filter.elem);
+		free(tab1_filter.elem);
 	}
 	else
 	{
 		int i;
-		for(i=0;i<tab1_filter.length;i++)
+		for(i=0;i<tab0_filter.length;i++)
 		{
 			join_node temp_join;
 			temp_join.next=NULL;
 			temp_join.tuple_base[0]=((char**)tab0_filter.elem)[i];
 			temp_join.tuple_base[1]=NULL;
-			temp_join.s=0;
-			temp_join.c=0;
+			temp_join.brother=NULL;
+			ListInsert(&tab_join,&temp_join);
 		}
+		free(tab0_filter.elem);
+	}
+	
+	//output the header
+	int t_select_no=temp_select_query.total_select_no;
+	
+	int k;
+	int kcount=0;
+	for(k=0;k<t_select_no;k++)
+	{
+		int aggr_mode=temp_select_query.select_table[k]>>1;
+		int s_tab=temp_select_query.select_table[k]&1;
+		int s_col_no=temp_select_query.select_table_col_no[k];
 		
+		if(aggr_mode==0)
+			kcount+=printf("%s",t_head[s_tab]->col_name[s_col_no]);
+		else if(aggr_mode==aggr_count)
+			kcount+=printf("count");
+		else
+			kcount+=printf("%s(%s)\n",aggr_str[aggr_mode],t_head[s_tab]->col_name[s_col_no]);	
+		if(k!=t_select_no-1)
+			putchar('|');
+	}
+	putchar('\n');
+	for(k=0;k<kcount;k++)
+		putchar('-');
+	putchar('\n');
+
+
+	join_node * join_node_base = (join_node *)tab_join.elem;
+	if(temp_select_query.group_table_no!=2)//need group
+	{
+		join_node ** group_hash_tab=init_hash(sizeof(join_node*));
+		int i;
+		for(i=0;i<tab_join.length;i++)
+			insert_group_hash(group_hash_tab,join_node_base+i,t_head[temp_select_query.group_table_no]);
+
+		//output
+		int j;
+		for(i=0;i<HASH_SIZE;i++)
+		{
+			join_node * link_start=group_hash_tab[i];
+			while(link_start!=NULL)
+			{
+				for(j=0;j<t_select_no;j++){
+					int aggr_mode=temp_select_query.select_table[j]>>1;
+					int s_tab=temp_select_query.select_table[j]&1;
+					int s_col_no=temp_select_query.select_table_col_no[j];
+					aggr_funcs[aggr_mode]( link_start ,t_head[s_tab],s_tab,s_col_no);
+				
+					if(j!=t_select_no-1)
+						putchar('|');
+				}
+				putchar('\n');
+				link_start=link_start->next;
+			}
+		}
+		free(group_hash_tab);
+	}
+	else //normal output
+	{
+		int i,j;
+		for(i=0;i<tab_join.length;i++)
+		{
+			for(j=0;j<t_select_no;j++){
+				int s_tab=temp_select_query.select_table[j]&1;
+				int s_col_no=temp_select_query.select_table_col_no[j];
+				aggr_funcs[0]( join_node_base+i ,t_head[s_tab],s_tab,s_col_no);
+				
+				if(j!=t_select_no-1)
+					putchar('|');
+			}
+			putchar('\n');
+		}
+
+	}
+	int i;
+	for(i=0;i<tab_join.length;i++)
+	{
+		free(join_node_base[i].tuple_base[0]);
+		free(join_node_base[i].tuple_base[1]);
 	}
 
+	free(tab_join.elem);
 	return 1;
 }

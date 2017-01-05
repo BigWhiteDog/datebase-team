@@ -412,6 +412,7 @@ int sol_select_query()
 	
 	if(temp_select_query.join_sign)
 	{
+		temp_select_query.join_sign=(t_head[0]->e_type[temp_select_query.join_table_0_col_no])?varchar_e:int_e;
 		//create hash
 		hash_node *hash_tab=init_hash(sizeof(hash_node));
 		int i;

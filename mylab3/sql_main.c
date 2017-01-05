@@ -21,28 +21,9 @@ typedef struct
 SqList table_heads;//use table_heads.elem[i] to get the ith table_head.
 table_head * table_head_p;
 
-
-void sol_query(query_type q)
-{
-	switch(q){
-		case my_create:
-			sol_create_query();
-			break;
-		case my_insert:
-			sol_insert_query();
-			break;
-		case my_drop:
-			sol_drop_query();
-			break;
-		case my_select:
-			sol_select_query();
-			break;
-	}
-	table_head_p = (table_head *)table_heads.elem;
-}
+FILE* metadata;
 
 void interperter(FILE* sql);
-
 int main(int argc, char const *argv[])
 {
 
@@ -57,7 +38,6 @@ int main(int argc, char const *argv[])
 		fprintf(stderr,"Error! can't open file %s\n",argv[1]);
 		return 1;
 	}
-	FILE *metadata;
 	metadata=fopen("./db/metadata","rb+");
 	fseek(metadata,0,SEEK_SET);
 	//printf("%d %d %d \n", table_heads.elem_size,table_heads.length,table_heads.listsize);

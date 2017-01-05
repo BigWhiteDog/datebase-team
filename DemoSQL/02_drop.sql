@@ -5,7 +5,7 @@
 
 
 -- correct statement -- 
-create table crtDemo (id int, name varchar); 
+--create table crtDemo (id int, name varchar); 
 
 drop table crtDemo; 
 
@@ -14,8 +14,8 @@ drop table crtDemo;
 
 
 
--- wrong statements -- 
+-- -- wrong statements -- 
 
--- wrong statements: table does not exist -- 
-drop table crtDemo; 
+-- -- wrong statements: table does not exist -- 
+-- drop table crtDemo; 
 

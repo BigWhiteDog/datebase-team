@@ -8,12 +8,12 @@ int sol_drop_query()
 	char name_buffer[256];
 	sprintf(name_buffer,"./db/%s.tbl",the_tab_name);
 	if(remove(name_buffer)<0){
-		printf("Can't drop table %s\n",the_tab_name);
+		// printf("Can't drop table %s\n",the_tab_name);
 		return 0;
 	}
 	else
 	{
-		printf("Succesfully dropped tabel %s\n",the_tab_name);
+		// printf("Succesfully dropped tabel %s\n",the_tab_name);
 		return 1;
 	}
 }

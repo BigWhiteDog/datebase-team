@@ -21,32 +21,35 @@ insert into crtDemo values (1, 'first again');
 
 
 -- correct statement -- 
+
 select * from crtDemo;
 
-select id from crtDemo;
-
-select id from crtDemo where id = 1;
-
-select id from crtDemo where name like 'first record';
 
 
+-- select id from crtDemo;
+
+-- select id from crtDemo where id = 1;
+
+-- select id from crtDemo where name like 'first record';
 
 
 
--- wrong statement -- 
 
 
--- 0. syntax error  --
-select id from crtDemo where ;
+-- -- wrong statement -- 
 
--- 1. table does not exist --
-select * from TableNotExist;
 
--- 2. column does not exist --
-select ColNotExist from crtDemo;
+-- -- 0. syntax error  --
+-- select id from crtDemo where ;
 
--- 3. operation mismatch --
-select name from crtDemo where id like '1';
+-- -- 1. table does not exist --
+-- select * from TableNotExist;
+
+-- -- 2. column does not exist --
+-- select ColNotExist from crtDemo;
+
+-- -- 3. operation mismatch --
+-- select name from crtDemo where id like '1';
 
 
 

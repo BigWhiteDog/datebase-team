@@ -28,12 +28,15 @@ select id, count(*) from tab1 where id > 0 group by id;
 select tab1.id, max(count) from tab1, tab2 where tab1.id = tab2.id and count <= 30 group by tab1.id;
 
 
+drop table tab1;
+drop table tab2;
 
 
--- 0. aggregation column not int -- 
-select id, avg(name) from tab1 where id > 0 group by id;
 
--- 1. data type mismatch -- 
-select id, text from tab1 group by id;
+-- -- 0. aggregation column not int -- 
+-- select id, avg(name) from tab1 where id > 0 group by id;
+
+-- -- 1. data type mismatch -- 
+-- select id, text from tab1 group by id;
 
 

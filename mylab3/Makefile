@@ -10,8 +10,10 @@ ucasdb: $(SQL_OBJS)
 test_meta: list.o test_meta.o
 	$(CC) -o create_meta list.o test_meta.o
 	./create_meta
+	rm -rf db
+	mkdir db
 	mv metadata ./db/
-	rm create_meta test_meta.o
+	rm create_meta test_meta.o list.o
 	
 %.o : %.c 
 	$(CC) $(CFLAGS) $<

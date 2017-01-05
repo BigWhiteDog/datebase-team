@@ -1,7 +1,7 @@
 #include"list.h"
 #include"mysql.h"
 
-
+extern FILE* metadata;
 int sol_create_query()
 {
 	table_head new_table_head;
@@ -22,6 +22,14 @@ int sol_create_query()
 	if(fp==NULL)
 		return 0;
 	fclose(fp);
-	printf("Successfully created table %s\n",temp_create_query.table_name);
+
+	fseek(metadata,0,SEEK_SET);
+	fwrite(&table_heads,sizeof(table_heads),1,metadata);
+	fwrite(table_heads.elem,table_heads.elem_size,table_heads.listsize,metadata);
+	fclose(metadata);
+
+	metadata=fopen("./db/metadata","rb+");
+
+	// printf("Successfully created table %s\n",temp_create_query.table_name);
 	return 1;
 }

@@ -558,3 +558,27 @@ int sol_select_query()
 	// printf("select finish!\n");
 	return 1;
 }
+
+
+
+
+int sol_query(query_type q)
+{
+	int res=0;
+	switch(q){
+		case my_create:
+			res=sol_create_query();
+			break;
+		case my_insert:
+			res=sol_insert_query();
+			break;
+		case my_drop:
+			res=sol_drop_query();
+			break;
+		case my_select:
+			res=sol_select_query();
+			break;
+	}
+	table_head_p = (table_head *)table_heads.elem;
+	return res;
+}

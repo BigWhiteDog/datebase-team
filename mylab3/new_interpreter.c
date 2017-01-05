@@ -48,10 +48,12 @@ void interperter(FILE* sql){
 	char select_name[2048][2048];
 	char select_str[2048];
 	char se_col[2048];
+	char se_table[2048];
 	char sl_str[2048][2048];
 	char group_table_name[2048];
 	char group_col_name[2048];
 	char op_str[2048];
+	char group_name[2048];
 	int indl, indle, indg, indge, inde, indne, indlike, indnlike;
 	while (1){
 		//bzero
@@ -101,9 +103,12 @@ void interperter(FILE* sql){
 		memset(select_name, '\0', sizeof(select_name));
 		memset(select_str, '\0', sizeof(select_str));
 		memset(sl_str, '\0', sizeof(sl_str));
+		memset(se_table, '\0', sizeof(se_table));
+		memset(se_col, '\0', sizeof(se_col));
 		memset(group_table_name, '\0', sizeof(group_table_name));
 		memset(group_col_name, '\0', sizeof(group_col_name));
 		memset(op_str, '\0', sizeof(op_str));
+		memset(group_name, '\0', sizeof(group_name));
 		indl = 0; indle = 0; indg = 0; indge = 0; inde = 0; indne = 0; indlike = 0; indnlike = 0;
 		col_num = 0;
 		c_num = 0;
@@ -460,7 +465,7 @@ void interperter(FILE* sql){
 							}
 							for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 								if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], temp_col_name[0])){
-									if (res1 = 0){ printf("Ambiguous column%s\n", temp_col_name[0]); err = 1; break; }
+									if (res1 == 0){ printf("Ambiguous column%s\n", temp_col_name[0]); err = 1; break; }
 									else{
 										res1 = 0;
 										temp_select_query.join_table_1_col_no = col_head_ind;
@@ -487,7 +492,7 @@ void interperter(FILE* sql){
 							}
 							for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 								if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], temp_col_name[1])){
-									if (res2 = 0){ printf("Ambiguous column%s\n", temp_col_name[1]); err = 1; break; }
+									if (res2 == 0){ printf("Ambiguous column%s\n", temp_col_name[1]); err = 1; break; }
 									else{
 										res2 = 0;
 										temp_select_query.join_table_1_col_no = col_head_ind;
@@ -528,7 +533,7 @@ void interperter(FILE* sql){
 							indlike = pattern_match(condition[i], "like");
 							indnlike = pattern_match(condition[i], "not like");
 							if ((indl>0) && (indg>0) && (inde>0) && (indlike>0)) { printf("Syntax error\n"); continue; }
-							if (indle>0) { op[i] = int_le; strcpy(cop[i],"<="); }
+							if (indle>0) { op[i] = int_le; strcpy(cop[i], "<="); }
 							else if (indl>0) { op[i] = int_l; strcpy(cop[i], "<"); }
 							else if (indge>0) { op[i] = int_ge; strcpy(cop[i], ">="); }
 							else if (indg>0) { op[i] = int_g; strcpy(cop[i], ">"); }
@@ -548,10 +553,10 @@ void interperter(FILE* sql){
 											res1 = 0;
 											temp_select_query.filter_0_table_col_no = col_head_ind;
 											e_type[i] = table_head_p[temp_select_query.use_table_no[0]].e_type[col_head_ind];
-											if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
-											else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
+											if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
+											else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
 											else if (e_type[i] == varchar) { op[i] = op[i] + 2; }
-											temp_select_query.filter_0_sign[i] = op[i];
+											temp_select_query.filter_0_sign = op[i];
 											if (e_type[i] == varchar){ strncpy(temp_select_query.filter_0_const_char, char_const[i] + 1, strlen(char_const[i]) - 2); }
 											else if (e_type[i] == int32){ temp_select_query.filter_0_const_int = atoi(char_const[i]); }
 										}
@@ -564,8 +569,8 @@ void interperter(FILE* sql){
 											res1 = 0;
 											temp_select_query.filter_1_table_col_no = col_head_ind;
 											e_type[i] = table_head_p[temp_select_query.use_table_no[1]].e_type[col_head_ind];
-											if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
-											else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
+											if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
+											else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
 											else if (e_type[i] == varchar) { op[i] = op[i] + 2; }
 											temp_select_query.filter_1_sign = op[i];
 											if (e_type[i] == varchar){ strncpy(temp_select_query.filter_1_const_char, char_const[i] + 1, strlen(char_const[i]) - 2); }
@@ -591,21 +596,21 @@ void interperter(FILE* sql){
 										if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
 										else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
 										else if (e_type[i] == varchar) { op[i] = op[i] + 2; }
-										temp_select_query.filter_0_sign[i] = op[i];
+										temp_select_query.filter_0_sign = op[i];
 										if (e_type[i] == varchar){ strncpy(temp_select_query.filter_0_const_char, char_const[i] + 1, strlen(char_const[i]) - 2); }
 										else if (e_type[i] == int32){ temp_select_query.filter_0_const_int = atoi(char_const[i]); }
 									}
 								}
 								for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 									if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], temp_col_name[i])){
-										if (res1 = 0){ printf("Ambiguous column%s\n", temp_col_name[i]); err = 1; break; }
+										if (res1 == 0){ printf("Ambiguous column%s\n", temp_col_name[i]); err = 1; break; }
 										else{
 											res1 = 0;
 											strcpy(temp_table_name[i], table_head_p[temp_select_query.use_table_no[1]].table_name);
 											temp_select_query.filter_1_table_col_no = col_head_ind;
 											e_type[i] = table_head_p[temp_select_query.use_table_no[1]].e_type[col_head_ind];
-											if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
-											else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
+											if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
+											else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
 											else if (e_type[i] == varchar) { op[i] = op[i] + 2; }
 											temp_select_query.filter_1_sign = op[i];
 											if (e_type[i] == varchar){ strncpy(temp_select_query.filter_1_const_char, char_const[i] + 1, strlen(char_const[i]) - 2); }
@@ -667,7 +672,7 @@ void interperter(FILE* sql){
 						}
 						for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 							if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], group_col_name)){
-								if (res1 = 0){ printf("Ambiguous column%s\n", temp_col_name[0]); err = 1; break; }
+								if (res1 == 0){ printf("Ambiguous column%s\n", temp_col_name[0]); err = 1; break; }
 								else{
 									res1 = 0;
 									temp_select_query.group_table_col_no = col_head_ind;
@@ -712,7 +717,7 @@ void interperter(FILE* sql){
 										temp_select_query.select_table_col_no[i] = col_head_ind;
 									}
 								}
-								if (res1){ printf("Column %s doesn’t exist\n", op_col[0]); continue; }
+								if (res1){ printf("Column %s doesn’t exist\n", op_col); continue; }
 							}
 							else if (!strcmp(op_table, select_table_name[1])){
 								for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
@@ -722,7 +727,7 @@ void interperter(FILE* sql){
 										temp_select_query.select_table_col_no[i] = col_head_ind;
 									}
 								}
-								if (res1){ printf("Column %s doesn’t exist\n", op_col[0]); continue; }
+								if (res1){ printf("Column %s doesn’t exist\n", op_col); continue; }
 							}
 							else { printf("Syntax error\n"); continue; }
 						}
@@ -738,7 +743,7 @@ void interperter(FILE* sql){
 							}
 							for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 								if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], op_col)){
-									if (res1 = 0){ printf("Ambiguous column%s\n", op_col[0]); err = 1; break; }
+									if (res1 == 0){ printf("Ambiguous column%s\n", op_col[0]); err = 1; break; }
 									else{
 										res1 = 0;
 										temp_select_query.select_table[i] = 2 * agg[i] + 1;
@@ -746,7 +751,7 @@ void interperter(FILE* sql){
 									}
 								}
 							}
-							if (res1){ printf("Column %s doesn’t exist\n", op_col[0]); continue; }
+							if (res1){ printf("Column %s doesn’t exist\n", op_col); continue; }
 							if (err) continue;
 						}
 					}
@@ -755,7 +760,7 @@ void interperter(FILE* sql){
 						memset(se_table, '\0', sizeof(se_table));
 						memset(se_col, '\0', sizeof(se_col));
 						if (pattern_match(s, "group by") > 0){//has group by
-							if (pattern_match(sl_str[i].".")>0){//op(a.col)
+							if (pattern_match(sl_str[i],".")>0){//op(a.col)
 								get_middle(se_table, sl_str[i], "\0", ".");
 								get_middle(se_col, sl_str[i], ".", "\0");
 								if (strcmp(se_table, table_head_p[temp_select_query.use_table_no[temp_select_query.group_table_no]].table_name)){
@@ -770,7 +775,7 @@ void interperter(FILE* sql){
 									printf("Column %s is not int and can’t be used in aggregation\n", table_head_p[temp_select_query.use_table_no[temp_select_query.group_table_no]].col_name[temp_select_query.group_table_col_no]);
 									err = 1; break;
 								}
-								temp_select_query.select_table[i] = temp_select_query.group_table_no; 
+								temp_select_query.select_table[i] = temp_select_query.group_table_no;
 								temp_select_query.select_table_col_no[i] = temp_select_query.group_table_col_no;
 							}
 							else{//cname
@@ -788,7 +793,7 @@ void interperter(FILE* sql){
 							}
 						}
 						else{//has no group by
-							if (pattern_match(sl_str[i].".")>0){//op(a.col)
+							if (pattern_match(sl_str[i],".")>0){//op(a.col)
 								get_middle(se_table, sl_str[i], "\0", ".");
 								get_middle(se_col, sl_str[i], ".", "\0");
 								if (!strcmp(se_table, select_table_name[0])){
@@ -799,7 +804,7 @@ void interperter(FILE* sql){
 											temp_select_query.select_table_col_no[i] = col_head_ind;
 										}
 									}
-									if (res1){ printf("Column %s doesn’t exist\n", se_col[0]); continue; }
+									if (res1){ printf("Column %s doesn’t exist\n", se_col); continue; }
 								}
 								else if (!strcmp(op_table, select_table_name[1])){
 									for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
@@ -809,7 +814,7 @@ void interperter(FILE* sql){
 											temp_select_query.select_table_col_no[i] = col_head_ind;
 										}
 									}
-									if (res1){ printf("Column %s doesn’t exist\n", se_col[0]); continue; }
+									if (res1){ printf("Column %s doesn’t exist\n", se_col); continue; }
 								}
 								else { printf("Syntax error\n"); continue; }
 							}
@@ -825,7 +830,7 @@ void interperter(FILE* sql){
 								}
 								for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 									if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], se_col)){
-										if (res1 = 0){ printf("Ambiguous column%s\n", se_col[0]); err = 1; break; }
+										if (res1 = 0){ printf("Ambiguous column%s\n", se_col); err = 1; break; }
 										else{
 											res1 = 0;
 											temp_select_query.select_table[i] = 1;
@@ -833,7 +838,7 @@ void interperter(FILE* sql){
 										}
 									}
 								}
-								if (res1){ printf("Column %s doesn’t exist\n", se_col[0]); continue; }
+								if (res1){ printf("Column %s doesn’t exist\n", se_col); continue; }
 								if (err) continue;
 							}
 
@@ -907,7 +912,7 @@ void get_shell(char * shell, FILE * sql){
 	while (1){
 		//gets(&s);
 		//memset(buf, '\0', sizeof(buf));
-		fgets(&buf, 4096, sql);
+		fgets(buf, 4096, sql);
 		if (enter){
 			memset(temp, '\0', sizeof(temp));
 			temp[0] = ' ';
@@ -926,11 +931,12 @@ void get_shell(char * shell, FILE * sql){
 			}
 			else if (buf[i] == '\''&& in_quort == 0){
 				in_quort = 1;
-				strcat(shell, buf[i]);
+			
+				strncat(shell, buf+i,1);
 			}
 			else if (buf[i] == '\''&& in_quort == 1){
 				in_quort = 0;
-				strcat(shell, buf[i]);
+				strncat(shell, buf + i, 1);
 			}
 			else if ((!(buf[i] == ' ' && (((buf[i - 1] >= 'a' && buf[i - 1] <= 'z') && (buf[i + 1] >= 'a' && buf[i + 1] <= 'z')) || (buf[i - 1] >= '0'&& buf[i - 1] <= '9')))) && in_quort == 0 && i != 0)// only the blank space between 'word' and 'word' will be preseved
 				continue; //in this way , the colname and table name must write in words
@@ -944,7 +950,7 @@ void get_shell(char * shell, FILE * sql){
 			else if (buf[i] == ';')
 				break;
 			else
-				strcat(shell, buf[i]);
+				strncat(shell, buf+i,1);
 		}
 		if (strchr(buf, ';') != NULL){
 			break;

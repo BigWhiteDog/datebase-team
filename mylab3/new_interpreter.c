@@ -593,8 +593,8 @@ void interperter(FILE* sql){
 										temp_select_query.filter_0_table_col_no = col_head_ind;
 										strcpy(temp_table_name[i], table_head_p[temp_select_query.use_table_no[0]].table_name);
 										e_type[i] = table_head_p[temp_select_query.use_table_no[0]].e_type[col_head_ind];
-										if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
-										else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name, cop[i], char_const[i]); break; err = 1; }
+										if (e_type[i] == varchar && ((indle>0) || (indl>0) || (indge>0) || (indg>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
+										else if (e_type[i] == int32 && ((indlike>0) || (indnlike>0))) { printf("Predicate %s%s%s error\n", temp_col_name[i], cop[i], char_const[i]); break; err = 1; }
 										else if (e_type[i] == varchar) { op[i] = op[i] + 2; }
 										temp_select_query.filter_0_sign = op[i];
 										if (e_type[i] == varchar){ strncpy(temp_select_query.filter_0_const_char, char_const[i] + 1, strlen(char_const[i]) - 2); }
@@ -830,7 +830,7 @@ void interperter(FILE* sql){
 								}
 								for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 									if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], se_col)){
-										if (res1 = 0){ printf("Ambiguous column%s\n", se_col); err = 1; break; }
+										if (res1 == 0){ printf("Ambiguous column%s\n", se_col); err = 1; break; }
 										else{
 											res1 = 0;
 											temp_select_query.select_table[i] = 1;

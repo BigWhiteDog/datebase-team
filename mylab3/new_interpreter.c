@@ -684,13 +684,13 @@ void interperter(FILE* sql){
 
 				//select
 				if (pattern_match(s, "select")<0){ printf("Syntax error\n"); continue; }
-				if ((pattern_match(s, "count(*)")>0){ temp_select_query.total_select_no = 1; }
+				if (pattern_match(s, "count(*)")>0){ temp_select_query.total_select_no = 1; }
 				get_middle(select_str, s, "select ", " from");
 				strcpy(sub_str, select_str);
 				i = 0;
 				while (strchr(sub_str, ',')){
 					get_middle(select_name[i], sub_str, "\0", ",");
-					if ((pattern_match(select_name[i], "(")>0){//aggr op
+					if (pattern_match(select_name[i], "(")>0){//aggr op
 						get_middle(agg_op[i], select_name[i], "\0", "(");
 						if (!strcmp(agg_op[i], "sum")) agg[i] = aggr_sum;
 						else if (!strcmp(agg_op[i], "count")) agg[i] = aggr_count;
@@ -770,7 +770,7 @@ void interperter(FILE* sql){
 									printf("Column %s is not int and can’t be used in aggregation\n", table_head_p[temp_select_query.use_table_no[temp_select_query.group_table_no]].col_name[temp_select_query.group_table_col_no]);
 									err = 1; break;
 								}
-								temp_select_query.select_table[i] = temp_select_query.group_table_notemp_select_query.group_table_no;
+								temp_select_query.select_table[i] = temp_select_query.group_table_no; 
 								temp_select_query.select_table_col_no[i] = temp_select_query.group_table_col_no;
 							}
 							else{//cname
@@ -848,7 +848,7 @@ void interperter(FILE* sql){
 				//call
 				sol_query(my_select);
 			}//no from
-			else{ printf("Syntax error\n"); continue; }
+			else{ printf("Syntax error\n"); err = 1; }
 
 		}//not sentence with key words
 		else

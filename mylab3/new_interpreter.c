@@ -743,7 +743,7 @@ void interperter(FILE* sql){
 							}
 							for (col_head_ind = 0; col_head_ind < MAX_COL_NUM; col_head_ind++){
 								if (!strcmp(table_head_p[temp_select_query.use_table_no[1]].col_name[col_head_ind], op_col)){
-									if (res1 == 0){ printf("Ambiguous column%s\n", op_col[0]); err = 1; break; }
+									if (res1 == 0){ printf("Ambiguous column%s\n", op_col); err = 1; break; }
 									else{
 										res1 = 0;
 										temp_select_query.select_table[i] = 2 * agg[i] + 1;

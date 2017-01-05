@@ -7,15 +7,6 @@ void interperter(FILE* sql);
 int pattern_match(char* s, char* pat);
 char* get_middle(char* result, char*s, char*im1, char* im2);
 
-//may be delete
-int main(int argc, char const *argv[]){
-	FILE *sql;
-	sql = fopen(argv[1], "r");
-	interperter(sql);
-
-	return 0;
-}
-
 void interperter(FILE* sql){
 	char s[4096] = { '\0' };
 	int i;

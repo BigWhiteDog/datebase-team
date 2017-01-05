@@ -1,8 +1,7 @@
 CC=gcc
 LD=ld
 CFLAGS=-g -c -O2 -Wall -std=c99
-SQL_OBJS =  list.o mycmp.o sql_create.o sql_drop.o sql_insert.o sql_select.o sql_main.o
-			##interpreter.o
+SQL_OBJS =  list.o mycmp.o sql_create.o sql_drop.o sql_insert.o sql_select.o new_interpreter.o sql_main.o
 all:ucasdb
 
 ucasdb: $(SQL_OBJS)

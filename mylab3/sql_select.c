@@ -89,8 +89,8 @@ void insert_join_hash(hash_node * hash_tab ,int index ,char* tuple_base)
 	else
 	{
 		hash_tab[index].next=calloc(1,sizeof(hash_node));
-		hash_tab[index].next->next=link_start;
-		hash_tab[index].next->tuple_base=tuple_base;
+		(hash_tab[index].next)->next=link_start;
+		(hash_tab[index].next)->tuple_base=tuple_base;
 	}
 }
 void free_join_hash(hash_node * hash_tab)
@@ -108,7 +108,7 @@ void free_join_hash(hash_node * hash_tab)
 	}
 	free(hash_tab);
 }
-void insert_group_hash(join_node ** group_hash_tab,join_node * insert_node, table_head* t_head)
+void insert_group_hash(const join_node ** group_hash_tab,join_node * insert_node, const table_head* t_head)
 {
 	int group_filter_sign;
 	group_filter_sign = (t_head->e_type[temp_select_query.group_table_col_no])? varchar_e : int_e;
@@ -329,7 +329,10 @@ int sol_select_query()
 	SqList tab0_filter;
 	SqList tab1_filter;
 	ListInit(&tab0_filter,sizeof(char*));
-	ListInit(&tab1_filter,sizeof(char*));
+	if(temp_select_query.join_sign)
+	{
+		ListInit(&tab1_filter,sizeof(char*));
+	}
 	char temp_page[4096];
 	page_header * p_head=(page_header *) temp_page;
 	
@@ -448,12 +451,9 @@ int sol_select_query()
 			}
 		}
 		free_join_hash(hash_tab);
-		free(tab0_filter.elem);
-		free(tab1_filter.elem);
 	}
 	else
 	{
-
 		int i;
 		for(i=0;i<tab0_filter.length;i++)
 		{
@@ -464,7 +464,6 @@ int sol_select_query()
 			temp_join.brother=NULL;
 			ListInsert(&tab_join,&temp_join);
 		}
-		free(tab0_filter.elem);
 	}
 	
 	//output the header
@@ -498,6 +497,7 @@ int sol_select_query()
 	if(temp_select_query.group_table_no!=2)//need group
 	{
 		join_node ** group_hash_tab=init_hash(sizeof(join_node*));
+		// join_node * group_hash_tab[HASH_SIZE]={NULL};
 		int i;
 		for(i=0;i<tab_join.length;i++)
 			insert_group_hash(group_hash_tab,join_node_base+i,t_head[temp_select_query.group_table_no]);
@@ -542,12 +542,18 @@ int sol_select_query()
 
 	}
 	int i;
-	for(i=0;i<tab_join.length;i++)
-	{
-		free(join_node_base[i].tuple_base[0]);
-		free(join_node_base[i].tuple_base[1]);
+	for(i=0;i<tab0_filter.length;i++)
+		free(((char**)tab0_filter.elem)[i]);
+	free(tab0_filter.elem);
+	fclose(fp[0]);
+
+	if(temp_select_query.join_sign){
+		for(i=0;i<tab1_filter.length;i++)
+			free(((char**)tab1_filter.elem)[i]);
+		free(tab1_filter.elem);
+		fclose(fp[1]);
 	}
 	free(tab_join.elem);
-	printf("select finish!\n");
+	// printf("select finish!\n");
 	return 1;
 }

@@ -29,7 +29,8 @@ typedef struct
 int sol_insert_query()
 {
 	table_head *t_head = (table_head *)(table_heads.elem)+temp_insert_query.table_no;
-	char temp_page[4096]={0};
+	char temp_page[4096];
+	memset(temp_page,0,sizeof(temp_page));
 	int16_t t_size=2;
 	int i;
 	int int_num=0;
@@ -133,6 +134,7 @@ int sol_insert_query()
 	memcpy(temp_page+4096-p_head->slot.listsize*2,p_head->slot.elem,p_head->slot.listsize*2);
 	fwrite(temp_page,4096,1,fp);
 
+	free(p_head->slot.elem);
 	free(temp_alloc);
 	fclose(fp);
 	return t_size;
